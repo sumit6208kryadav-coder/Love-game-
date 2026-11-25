@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>For Sitara ❤️ — A Special Surprise</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #140812;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    #game-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Intro Overlay */
+    #intro-screen {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #3b122b 0%, #12060e 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      z-index: 50;
+      color: #fff;
+      transition: opacity 0.8s ease;
+    }
+    #intro-screen h1 {
+      font-size: clamp(1.8rem, 6vw, 2.8rem);
+      color: #ff85b3;
+      text-shadow: 0 0 20px rgba(255, 77, 148, 0.7);
+      margin-bottom: 12px;
+    }
+    #intro-screen p {
+      font-size: clamp(0.95rem, 3.5vw, 1.15rem);
+      color: #f8d7e5;
+      max-width: 420px;
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+    #start-btn {
+      padding: 14px 36px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #ff3377, #ff758c);
+      border: none;
+      border-radius: 50px;
+      box-shadow: 0 8px 25px rgba(255, 51, 119, 0.55);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    #start-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* HUD */
+    #hud {
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(25, 10, 20, 0.68);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 133, 179, 0.35);
+      color: #ffe6f0;
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      z-index: 10;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Subtle Rotate Button for Photo */
+    #rotate-photo-btn {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(25, 10, 20, 0.65);
+      border: 1px solid rgba(255, 180, 210, 0.35);
+      color: #ffd6e7;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 15;
+      cursor: pointer;
+    }
+
+    /* Virtual Joystick */
+    #joystick-zone {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      width: 116px;
+      height: 116px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid rgba(255, 133, 179, 0.35);
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #joystick-knob {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ff85b3, #e62e6b);
+      box-shadow: 0 4px 14px rgba(255, 51, 119, 0.6);
+      transform: translate(0px, 0px);
+      pointer-events: none;
+    }
+
+    #look-hint {
+      position: fixed;
+      bottom: 28px;
+      right: 20px;
+      color: rgba(255, 214, 231, 0.65);
+      font-size: 0.78rem;
+      background: rgba(20, 8, 16, 0.5);
+      padding: 6px 12px;
+      border-radius: 20px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Proposal Choice UI */
+    #proposal-ui {
+      position: fixed;
+      bottom: 18%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      background: rgba(28, 10, 22, 0.85);
+      backdrop-filter: blur(10px);
+      padding: 20px 28px;
+      border-radius: 24px;
+      border: 1.5px solid rgba(255, 117, 160, 0.55);
+      box-shadow: 0 12px 35px rgba(255, 40, 110, 0.35);
+      z-index: 25;
+      text-align: center;
+      min-width: 270px;
+    }
+    #proposal-ui h2 {
+      color: #ff9ec4;
+      font-size: 1.35rem;
+      text-shadow: 0 0 12px rgba(255, 80, 140, 0.6);
+    }
+    .choice-row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      min-height: 48px;
+    }
+    .choice-btn {
+      padding: 11px 26px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    #yes-btn {
+      background: linear-gradient(135deg, #ff2a75, #ff6b9d);
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(255, 42, 117, 0.6);
+    }
+    #yes-btn:active {
+      transform: scale(0.94);
+    }
+    #no-btn {
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffd6e7;
+      border: 1px solid rgba(255, 180, 210, 0.4);
+    }
+
+    /* Celebration Message */
+    #celebration-banner {
+      position: fixed;
+      top: 14%;
+      left: 50%;
+      transform: translateX(-50%) scale(0.8);
+      opacity: 0;
+      background: linear-gradient(135deg, rgba(65, 14, 42, 0.92), rgba(30, 8, 22, 0.92));
+      border: 2px solid #ff85b3;
+      padding: 18px 30px;
+      border-radius: 24px;
+      text-align: center;
+      color: #fff;
+      box-shadow: 0 0 40px rgba(255, 64, 129, 0.65);
+      z-index: 30;
+      pointer-events: none;
+      transition: all 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+      width: 88%;
+      max-width: 420px;
+    }
+    #celebration-banner.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+    #celebration-banner h1 {
+      font-size: 1.5rem;
+      color: #ff9ec4;
+      margin-bottom: 6px;
+    }
+    #celebration-banner p {
+      font-size: 0.98rem;
+      color: #ffe6f0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Intro Screen -->
+  <div id="intro-screen">
+    <h1>For Sitara ❤️</h1>
+    <p>Maine tumhare liye ek chhoti si 3D duniya banayi hai... Andar aao aur dono rooms explore karo ✨</p>
+    <button id="start-btn">Enter World ❤️✨</button>
+  </div>
+
+  <!-- Top HUD -->
+  <div id="hud">Room 1: Love Gallery ❤️</div>
+  <button id="rotate-photo-btn" title="Rotate Photo">🔄</button>
+
+  <!-- Mobile Controls -->
+  <div id="joystick-zone">
+    <div id="joystick-knob"></div>
+  </div>
+  <div id="look-hint">Swipe screen to look around</div>
+
+  <!-- Proposal Buttons -->
+  <div id="proposal-ui">
+    <h2>Will U Marry Me? 💍</h2>
+    <div class="choice-row">
+      <button id="yes-btn" class="choice-btn">YES ❤️</button>
+      <button id="no-btn" class="choice-btn">NO 🙈</button>
+    </div>
+  </div>
+
+  <!-- Celebration Banner -->
+  <div id="celebration-banner">
+    <h1>She Said YES! 💍❤️</h1>
+    <p>Forever starts now, Sitara! I Love You So Much ✨</p>
+  </div>
+
+  <canvas id="game-canvas"></canvas>
+
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <script>
+    // ==========================================
+    // 1. AUDIO SYNTH (Romantic Chimes)
+    // ==========================================
+    let audioCtx = null;
+    function playChime(notes = [523.25, 659.25, 783.99, 1046.5], duration = 0.45) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        notes.forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.14);
+          gain.gain.setValueAtTime(0.001, audioCtx.currentTime + idx * 0.14);
+          gain.gain.exponentialRampToValueAtTime(0.14, audioCtx.currentTime + idx * 0.14 + 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + idx * 0.14 + duration);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(audioCtx.currentTime + idx * 0.14);
+          osc.stop(audioCtx.currentTime + idx * 0.14 + duration + 0.05);
+        });
+      } catch (e) {}
+    }
+
+    // ==========================================
+    // 2. SCENE, CAMERA & RENDERER SETUP
+    // ==========================================
+    const canvas = document.getElementById('game-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x160713);
+    scene.fog = new THREE.FogExp2(0x160713, 0.032);
+
+    const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 1.65, 5.2);
+    camera.rotation.order = 'YXZ';
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffcce0, 0.65);
+    scene.add(ambientLight);
+
+    const room1Light = new THREE.PointLight(0xff77aa, 1.6, 18);
+    room1Light.position.set(0, 3.6, 1.5);
+    scene.add(room1Light);
+
+    const frameSpotLight = new THREE.PointLight(0xfff0dd, 1.3, 9);
+    frameSpotLight.position.set(-2.2, 2.8, 0.5);
+    scene.add(frameSpotLight);
+
+    const room2Light = new THREE.PointLight(0xff5599, 1.8, 20);
+    room2Light.position.set(0, 3.7, -10.5);
+    scene.add(room2Light);
+
+    const proposalSpot = new THREE.PointLight(0xffe6f2, 1.5, 10);
+    proposalSpot.position.set(0, 3.0, -12.0);
+    scene.add(proposalSpot);
+
+    // ==========================================
+    // 3. HELPER: TEXT & PHOTO TEXTURES
+    // ==========================================
+    function createTextTexture(lines, options = {}) {
+      const {
+        width = 1024,
+        height = 512,
+        bg = '#24091b',
+        border = '#ff66a3',
+        textColor = '#ffffff',
+        glowColor = '#ff3385',
+        fontSize = 76
+      } = options;
+
+      const c = document.createElement('canvas');
+      c.width = width;
+      c.height = height;
+      const ctx = c.getContext('2d');
+
+      // Background
+      const grad = ctx.createLinearGradient(0, 0, width, height);
+      grad.addColorStop(0, bg);
+      grad.addColorStop(1, '#12040d');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+
+      // Border
+      ctx.strokeStyle = border;
+      ctx.lineWidth = 14;
+      ctx.strokeRect(18, 18, width - 36, height - 36);
+
+      // Text
+      ctx.fillStyle = textColor;
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = 24;
+      ctx.font = `bold ${fontSize}px "Segoe UI", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const lineHeight = fontSize * 1.3;
+      const startY = height / 2 - ((lines.length - 1) * lineHeight) / 2;
+      lines.forEach((line, i) => {
+        ctx.fillText(line, width / 2, startY + i * lineHeight);
+      });
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.needsUpdate = true;
+      return tex;
+    }
+
+    // Photo Frame Canvas & Auto-Rotation (-90 deg for sideways phone photo)
+    const photoCanvas = document.createElement('canvas');
+    photoCanvas.width = 600;
+    photoCanvas.height = 800;
+    const pCtx = photoCanvas.getContext('2d');
+    const photoTexture = new THREE.CanvasTexture(photoCanvas);
+
+    let loadedImg = null;
+    let photoRotationDeg = -90;
+
+    function renderPhotoToFrame() {
+      pCtx.fillStyle = '#2b0d1f';
+      pCtx.fillRect(0, 0, photoCanvas.width, photoCanvas.height);
+
+      if (loadedImg) {
+        pCtx.save();
+        pCtx.translate(photoCanvas.width / 2, photoCanvas.height / 2);
+        pCtx.rotate((photoRotationDeg * Math.PI) / 180);
+
+        const isRotated90 = Math.abs(photoRotationDeg % 180) === 90;
+        const targetW = isRotated90 ? photoCanvas.height : photoCanvas.width;
+        const targetH = isRotated90 ? photoCanvas.width : photoCanvas.height;
+
+        const imgRatio = loadedImg.width / loadedImg.height;
+        const boxRatio = targetW / targetH;
+        let drawW, drawH;
+
+        if (imgRatio > boxRatio) {
+          drawH = targetH;
+          drawW = targetH * imgRatio;
+        } else {
+          drawW = targetW;
+          drawH = targetW / imgRatio;
+        }
+
+        pCtx.drawImage(loadedImg, -drawW / 2, -drawH / 2, drawW, drawH);
+        pCtx.restore();
+      } else {
+        pCtx.fillStyle = '#ff9ec4';
+        pCtx.font = 'bold 48px "Segoe UI", sans-serif';
+        pCtx.textAlign = 'center';
+        pCtx.fillText('Sitara ❤️', 300, 390);
+      }
+
+      photoTexture.needsUpdate = true;
+    }
+
+    renderPhotoToFrame();
+
+    const sitaraImg = new Image();
+    sitaraImg.onload = () => {
+      loadedImg = sitaraImg;
+      renderPhotoToFrame();
+    };
+    sitaraImg.onerror = () => {
+      if (!sitaraImg.src.endsWith('sitara.jpg')) {
+        sitaraImg.src = 'sitara.jpg';
+      }
+    };
+    sitaraImg.src = 'Snapchat-2119169074.jpg';
+
+    document.getElementById('rotate-photo-btn').addEventListener('click', () => {
+      photoRotationDeg = (photoRotationDeg + 90) % 360;
+      renderPhotoToFrame();
+    });
+
+    // ==========================================
+    // 4. BUILD ROOM 1 & ROOM 2 ARCHITECTURE
+    // ==========================================
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x3b122b, roughness: 0.75 });
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0x240b1b, roughness: 0.6 });
+    const carpetMat = new THREE.MeshStandardMaterial({ color: 0x991f4d, roughness: 0.85 });
+    const goldMat = new THREE.MeshStandardMaterial({ color: 0xffd166, roughness: 0.25, metalness: 0.8 });
+
+    function addBox(w, h, d, mat, x, y, z) {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+      mesh.position.set(x, y, z);
+      scene.add(mesh);
+      return mesh;
+    }
+
+    // --- ROOM 1: Z from +7 to -4, X from -5 to +5 ---
+    addBox(10, 0.2, 11, floorMat, 0, -0.1, 1.5); // Floor
+    addBox(10, 0.2, 11, wallMat, 0, 4.3, 1.5);   // Ceiling
+    addBox(10, 4.4, 0.3, wallMat, 0, 2.1, 7.0);  // Back wall
+    addBox(0.3, 4.4, 11, wallMat, -5.0, 2.1, 1.5); // Left wall
+    addBox(0.3, 4.4, 11, wallMat, 5.0, 2.1, 1.5);  // Right wall
+
+    // Divider Wall with Archway at Z = -4.0 (Opening from X = -1.7 to +1.7)
+    addBox(3.3, 4.4, 0.4, wallMat, -3.35, 2.1, -4.0);
+    addBox(3.3, 4.4, 0.4, wallMat, 3.35, 2.1, -4.0);
+    addBox(3.4, 1.1, 0.4, wallMat, 0, 3.75, -4.0);
+    // Archway Gold Pillars
+    addBox(0.18, 3.2, 0.5, goldMat, -1.7, 1.6, -4.0);
+    addBox(0.18, 3.2, 0.5, goldMat, 1.7, 1.6, -4.0);
+    addBox(3.58, 0.18, 0.5, goldMat, 0, 3.2, -4.0);
+
+    // Red Carpet Path from Room 1 to Room 2
+    addBox(2.0, 0.03, 21.0, carpetMat, 0, 0.015, -3.5);
+
+    // Room 1: Sitara's Photo Frame on Left Wall
+    const frameGroup = new THREE.Group();
+    frameGroup.position.set(-4.78, 2.05, 1.2);
+    frameGroup.rotation.y = Math.PI / 2;
+
+    const outerFrame = new THREE.Mesh(new THREE.BoxGeometry(2.1, 2.75, 0.14), goldMat);
+    const photoPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.82, 2.42),
+      new THREE.MeshBasicMaterial({ map: photoTexture })
+    );
+    photoPlane.position.z = 0.08;
+    frameGroup.add(outerFrame, photoPlane);
+    scene.add(frameGroup);
+
+    // Room 1: "I Love U Sitara ❤️" Glowing Neon Sign
+    const loveSignTex = createTextTexture(['I Love U Sitara ❤️', 'Tum Meri Duniya Ho ✨'], {
+      width: 1024,
+      height: 420,
+      fontSize: 72
+    });
+    const loveSign = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.6, 1.5),
+      new THREE.MeshBasicMaterial({ map: loveSignTex })
+    );
+    loveSign.position.set(2.3, 2.2, -3.76);
+    loveSign.rotation.y = -0.22;
+    scene.add(loveSign);
+
+    // Archway Header Sign ("Room 2 → Surprise Inside 💍")
+    const archSignTex = createTextTexture(['Room 2 → Surprise Inside 💍'], {
+      width: 1024,
+      height: 220,
+      fontSize: 54
+    });
+    const archSign = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.1, 0.68),
+      new THREE.MeshBasicMaterial({ map: archSignTex })
+    );
+    archSign.position.set(0, 3.68, -3.78);
+    scene.add(archSign);
+
+    // --- ROOM 2: Z from -4 to -16, X from -5.5 to +5.5 ---
+    addBox(11, 0.2, 12, floorMat, 0, -0.1, -10.0); // Floor
+    addBox(11, 0.2, 12, wallMat, 0, 4.3, -10.0);  // Ceiling
+    addBox(11, 4.4, 0.3, wallMat, 0, 2.1, -16.0); // Far wall
+    addBox(0.3, 4.4, 12, wallMat, -5.5, 2.1, -10.0); // Left wall
+    addBox(0.3, 4.4, 12, wallMat, 5.5, 2.1, -10.0);  // Right wall
+
+    // ==========================================
+    // 5. ROOM 2: 3D BOY CHARACTER & PROPOSAL BOARD
+    // ==========================================
+    const boyGroup = new THREE.Group();
+    boyGroup.position.set(-0.95, 0, -12.4);
+    boyGroup.rotation.y = 0.22;
+
+    const skinMat = new THREE.MeshStandardMaterial({ color: 0xf2c2a2, roughness: 0.6 });
+    const hairMat = new THREE.MeshStandardMaterial({ color: 0x1a1418, roughness: 0.8 });
+    const suitMat = new THREE.MeshStandardMaterial({ color: 0x1b263b, roughness: 0.45 });
+    const shirtMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
+    const tieMat = new THREE.MeshStandardMaterial({ color: 0xe62e6b, roughness: 0.4 });
+    const shoeMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3 });
+
+    // Legs
+    const leftLeg = new THREE.Group();
+    leftLeg.position.set(-0.16, 0.85, 0);
+    const lThigh = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.85, 0.24), suitMat);
+    lThigh.position.y = -0.42;
+    const lShoe = new THREE.Mesh(new THREE.BoxGeometry(0.23, 0.12, 0.34), shoeMat);
+    lShoe.position.set(0, -0.82, 0.05);
+    leftLeg.add(lThigh, lShoe);
+
+    const rightLeg = new THREE.Group();
+    rightLeg.position.set(0.16, 0.85, 0);
+    const rThigh = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.85, 0.24), suitMat);
+    rThigh.position.y = -0.42;
+    const rShoe = new THREE.Mesh(new THREE.BoxGeometry(0.23, 0.12, 0.34), shoeMat);
+    rShoe.position.set(0, -0.82, 0.05);
+    rightLeg.add(rThigh, rShoe);
+
+    // Upper Body Group (lowers when kneeling)
+    const upperBody = new THREE.Group();
+    upperBody.position.set(0, 0.85, 0);
+
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.78, 0.3), suitMat);
+    torso.position.y = 0.39;
+
+    const whiteShirt = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.65), shirtMat);
+    whiteShirt.position.set(0, 0.42, 0.155);
+
+    const tie = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.45, 0.02), tieMat);
+    tie.position.set(0, 0.42, 0.162);
+
+    // Head
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 1.02, 0);
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.44, 0.42), skinMat);
+    const hairTop = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.14, 0.45), hairMat);
+    hairTop.position.y = 0.22;
+    const hairBack = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.36, 0.12), hairMat);
+    hairBack.position.set(0, 0.06, -0.18);
+
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+    const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.032, 10, 10), eyeMat);
+    leftEye.position.set(-0.09, 0.03, 0.21);
+    const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.032, 10, 10), eyeMat);
+    rightEye.position.set(0.09, 0.03, 0.21);
+
+    const smile = new THREE.Mesh(
+      new THREE.TorusGeometry(0.065, 0.014, 8, 16, Math.PI),
+      new THREE.MeshBasicMaterial({ color: 0xb83b5e })
+    );
+    smile.rotation.z = Math.PI;
+    smile.position.set(0, -0.07, 0.212);
+
+    headGroup.add(head, hairTop, hairBack, leftEye, rightEye, smile);
+
+    // Left Arm
+    const leftArm = new THREE.Group();
+    leftArm.position.set(-0.38, 0.72, 0);
+    const lArmMesh = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.68, 0.18), suitMat);
+    lArmMesh.position.y = -0.3;
+    const lHand = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), skinMat);
+    lHand.position.y = -0.66;
+    leftArm.add(lArmMesh, lHand);
+
+    // Right Arm (Holds Ring Box & Extends on YES)
+    const rightArm = new THREE.Group();
+    rightArm.position.set(0.38, 0.72, 0);
+    const rArmMesh = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.68, 0.18), suitMat);
+    rArmMesh.position.y = -0.3;
+    const rHand = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), skinMat);
+    rHand.position.y = -0.66;
+
+    // Velvet Ring Box in Boy's Hand
+    const ringBox = new THREE.Group();
+    ringBox.position.set(0, -0.72, 0.12);
+    const boxBase = new THREE.Mesh(
+      new THREE.BoxGeometry(0.16, 0.08, 0.16),
+      new THREE.MeshStandardMaterial({ color: 0x990033, roughness: 0.4 })
+    );
+    const boyRingBand = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.009, 10, 20), goldMat);
+    boyRingBand.position.y = 0.06;
+    const boyDiamond = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.022),
+      new THREE.MeshBasicMaterial({ color: 0xa8f9ff })
+    );
+    boyDiamond.position.y = 0.1;
+    ringBox.add(boxBase, boyRingBand, boyDiamond);
+
+    rightArm.add(rArmMesh, rHand, ringBox);
+    upperBody.add(torso, whiteShirt, tie, headGroup, leftArm, rightArm);
+    boyGroup.add(leftLeg, rightLeg, upperBody);
+    scene.add(boyGroup);
+
+    // --- PROPOSAL BOARD NEXT TO THE BOY ---
+    const boardGroup = new THREE.Group();
+    boardGroup.position.set(1.05, 0, -12.5);
+    boardGroup.rotation.y = -0.18;
+
+    const standPoleL = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.3), goldMat);
+    standPoleL.position.set(-0.95, 1.15, 0);
+    const standPoleR = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.3), goldMat);
+    standPoleR.position.set(0.95, 1.15, 0);
+
+    const boardFrame = new THREE.Mesh(new THREE.BoxGeometry(2.3, 1.45, 0.12), goldMat);
+    boardFrame.position.set(0, 1.85, 0);
+
+    const boardTex = createTextTexture(['Will U Marry Me? 💍', 'Tap YES or NO ❤️'], {
+      width: 1024,
+      height: 620,
+      fontSize: 78
+    });
+    const boardFace = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.12, 1.28),
+      new THREE.MeshBasicMaterial({ map: boardTex })
+    );
+    boardFace.position.set(0, 1.85, 0.07);
+
+    boardGroup.add(standPoleL, standPoleR, boardFrame, boardFace);
+    scene.add(boardGroup);
+
+    // ==========================================
+    // 6. FIRST-PERSON HAND & RING CEREMONY MESH
+    // ==========================================
+    const ceremonyGroup = new THREE.Group();
+    ceremonyGroup.visible = false;
+
+    const playerHandGroup = new THREE.Group();
+    const palm = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.05, 0.22), skinMat);
+    playerHandGroup.add(palm);
+
+    const fingerOffsets = [-0.058, -0.02, 0.02, 0.058];
+    fingerOffsets.forEach((fx, idx) => {
+      const fLen = idx === 1 ? 0.16 : idx === 3 ? 0.12 : 0.145;
+      const finger = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.017, fLen, 10), skinMat);
+      finger.rotation.x = Math.PI / 2;
+      finger.position.set(fx, 0, -0.11 - fLen / 2);
+      playerHandGroup.add(finger);
+    });
+
+    // Thumb
+    const thumb = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.019, 0.11, 10), skinMat);
+    thumb.rotation.set(Math.PI / 2, 0, -0.5);
+    thumb.position.set(-0.095, -0.01, -0.04);
+    playerHandGroup.add(thumb);
+
+    // Sparkling Engagement Ring that slides onto the Ring Finger
+    const engagementRing = new THREE.Group();
+    const ringBand = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.0055, 12, 24), goldMat);
+    const diamond = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.018),
+      new THREE.MeshBasicMaterial({ color: 0xd9fbff })
+    );
+    diamond.position.y = 0.028;
+    engagementRing.add(ringBand, diamond);
+    engagementRing.position.set(0.02, 0.005, -0.45);
+
+    playerHandGroup.add(engagementRing);
+    playerHandGroup.position.set(0.18, -0.24, -0.52);
+    playerHandGroup.rotation.set(0.15, -0.25, 0.1);
+    ceremonyGroup.add(playerHandGroup);
+    camera.add(ceremonyGroup);
+    scene.add(camera);
+
+    // ==========================================
+    // 7. FLOATING 3D HEARTS PARTICLE SYSTEM
+    // ==========================================
+    const heartShape = new THREE.Shape();
+    heartShape.moveTo(0, 0);
+    heartShape.bezierCurveTo(0, -0.03, -0.06, -0.15, -0.15, -0.15);
+    heartShape.bezierCurveTo(-0.3, -0.15, -0.3, 0.03, -0.3, 0.03);
+    heartShape.bezierCurveTo(-0.3, 0.15, -0.18, 0.26, 0, 0.36);
+    heartShape.bezierCurveTo(0.18, 0.26, 0.3, 0.15, 0.3, 0.03);
+    heartShape.bezierCurveTo(0.3, 0.03, 0.3, -0.15, 0.15, -0.15);
+    heartShape.bezierCurveTo(0.06, -0.15, 0, -0.03, 0, 0);
+
+    const heartGeo = new THREE.ExtrudeGeometry(heartShape, {
+      depth: 0.06,
+      bevelEnabled: true,
+      bevelSegments: 2,
+      steps: 1,
+      bevelSize: 0.02,
+      bevelThickness: 0.02
+    });
+    heartGeo.rotateZ(Math.PI);
+
+    const floatingHearts = [];
+    function spawnHeart(x, y, z, scale = 0.35, speed = 0.012) {
+      const mat = new THREE.MeshStandardMaterial({
+        color: Math.random() > 0.4 ? 0xff2a75 : 0xff85b3,
+        emissive: 0x660022,
+        roughness: 0.3
+      });
+      const h = new THREE.Mesh(heartGeo, mat);
+      h.position.set(x, y, z);
+      h.scale.setScalar(scale);
+      h.userData = { speed, rotSpeed: (Math.random() - 0.5) * 0.04, minY: y, maxY: y + 3.6 };
+      scene.add(h);
+      floatingHearts.push(h);
+    }
+
+    for (let i = 0; i < 28; i++) {
+      const zPos = i < 14 ? 5 - Math.random() * 8 : -5 - Math.random() * 10;
+      const xPos = (Math.random() - 0.5) * 8;
+      spawnHeart(xPos, 0.3 + Math.random() * 2.5, zPos, 0.28 + Math.random() * 0.2, 0.008 + Math.random() * 0.008);
+    }
+
+    // ==========================================
+    // 8. CONTROLS (VIRTUAL JOYSTICK, TOUCH, WASD)
+    // ==========================================
+    let yaw = 0;
+    let pitch = 0;
+    const moveInput = { x: 0, y: 0 };
+    const keys = {};
+
+    const joyZone = document.getElementById('joystick-zone');
+    const joyKnob = document.getElementById('joystick-knob');
+    let joyTouchId = null;
+
+    joyZone.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const t = e.changedTouches[0];
+      joyTouchId = t.identifier;
+      updateJoystick(t.clientX, t.clientY);
+    }, { passive: false });
+
+    joyZone.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      for (let t of e.changedTouches) {
+        if (t.identifier === joyTouchId) {
+          updateJoystick(t.clientX, t.clientY);
+        }
+      }
+    }, { passive: false });
+
+    function resetJoystick() {
+      joyTouchId = null;
+      moveInput.x = 0;
+      moveInput.y = 0;
+      joyKnob.style.transform = 'translate(0px, 0px)';
+    }
+    joyZone.addEventListener('touchend', resetJoystick);
+    joyZone.addEventListener('touchcancel', resetJoystick);
+
+    function updateJoystick(clientX, clientY) {
+      const rect = joyZone.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const maxR = rect.width / 2 - 18;
+
+      let dx = clientX - cx;
+      let dy = clientY - cy;
+      const dist = Math.hypot(dx, dy);
+      if (dist > maxR) {
+        dx = (dx / dist) * maxR;
+        dy = (dy / dist) * maxR;
+      }
+      joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+      moveInput.x = dx / maxR;
+      moveInput.y = -dy / maxR;
+    }
+
+    let lookTouchId = null;
+    let lastLookX = 0;
+    let lastLookY = 0;
+    let isMouseDragging = false;
+
+    canvas.addEventListener('touchstart', (e) => {
+      for (let t of e.changedTouches) {
+        if (lookTouchId === null && t.identifier !== joyTouchId) {
+          lookTouchId = t.identifier;
+          lastLookX = t.clientX;
+          lastLookY = t.clientY;
+        }
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('touchmove', (e) => {
+      for (let t of e.changedTouches) {
+        if (t.identifier === lookTouchId) {
+          const dx = t.clientX - lastLookX;
+          const dy = t.clientY - lastLookY;
+          lastLookX = t.clientX;
+          lastLookY = t.clientY;
+          yaw -= dx * 0.0055;
+          pitch = Math.max(-0.65, Math.min(0.65, pitch - dy * 0.0045));
+        }
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('touchend', (e) => {
+      for (let t of e.changedTouches) {
+        if (t.identifier === lookTouchId) lookTouchId = null;
+      }
+    });
+
+    canvas.addEventListener('mousedown', (e) => {
+      isMouseDragging = true;
+      lastLookX = e.clientX;
+      lastLookY = e.clientY;
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (!isMouseDragging) return;
+      yaw -= (e.clientX - lastLookX) * 0.0045;
+      pitch = Math.max(-0.65, Math.min(0.65, pitch - (e.clientY - lastLookY) * 0.0035));
+      lastLookX = e.clientX;
+      lastLookY = e.clientY;
+    });
+    window.addEventListener('mouseup', () => { isMouseDragging = false; });
+
+    window.addEventListener('keydown', (e) => { keys[e.code] = true; });
+    window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+    // ==========================================
+    // 9. PROPOSAL INTERACTION & RING ANIMATION
+    // ==========================================
+    const hud = document.getElementById('hud');
+    const proposalUI = document.getElementById('proposal-ui');
+    const yesBtn = document.getElementById('yes-btn');
+    const noBtn = document.getElementById('no-btn');
+    const celebBanner = document.getElementById('celebration-banner');
+
+    let isProposalAccepted = false;
+    let ceremonyProgress = 0;
+    let noClicks = 0;
+    const noTexts = ['Soch lo phir se 🥺', 'Pakka? 🙈', 'Ek baar aur dekho ❤️', 'Sirf YES chalega 😘'];
+
+    noBtn.addEventListener('click', () => {
+      noBtn.textContent = noTexts[noClicks % noTexts.length];
+      noClicks++;
+      const rx = (Math.random() - 0.5) * 90;
+      const ry = (Math.random() - 0.5) * 40;
+      noBtn.style.transform = `translate(${rx}px, ${ry}px)`;
+      playChime([330, 293], 0.25);
+    });
+
+    yesBtn.addEventListener('click', () => {
+      if (isProposalAccepted) return;
+      isProposalAccepted = true;
+      proposalUI.style.display = 'none';
+      hud.textContent = 'She Said YES! ❤️💍';
+      ceremonyGroup.visible = true;
+      boyRingBand.visible = false;
+      boyDiamond.visible = false;
+
+      playChime([523.25, 659.25, 783.99, 1046.5, 1318.5], 0.65);
+
+      for (let i = 0; i < 45; i++) {
+        spawnHeart(
+          (Math.random() - 0.5) * 5,
+          0.4 + Math.random() * 1.5,
+          -10.5 - Math.random() * 4,
+          0.35 + Math.random() * 0.25,
+          0.02 + Math.random() * 0.015
+        );
+      }
+
+      setTimeout(() => {
+        celebBanner.classList.add('show');
+      }, 900);
+    });
+
+    document.getElementById('start-btn').addEventListener('click', () => {
+      const intro = document.getElementById('intro-screen');
+      intro.style.opacity = '0';
+      playChime([440, 554.37, 659.25], 0.4);
+      setTimeout(() => { intro.style.display = 'none'; }, 800);
+    });
+
+    // Collision Check (Rooms + Archway)
+    function isWalkable(nx, nz) {
+      if (nz <= 6.2 && nz >= -3.4) {
+        return nx >= -4.2 && nx <= 4.2;
+      }
+      if (nz < -3.4 && nz > -4.6) {
+        return nx >= -1.25 && nx <= 1.25;
+      }
+      if (nz <= -4.6 && nz >= -10.8) {
+        return nx >= -4.6 && nx <= 4.6;
+      }
+      return false;
+    }
+
+    // ==========================================
+    // 10. MAIN ANIMATION LOOP
+    // ==========================================
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.05);
+      const elapsed = clock.getElapsedTime();
+
+      if (!isProposalAccepted) {
+        let forward = moveInput.y;
+        let strafe = moveInput.x;
+        if (keys['KeyW'] || keys['ArrowUp']) forward += 1;
+        if (keys['KeyS'] || keys['ArrowDown']) forward -= 1;
+        if (keys['KeyA'] || keys['ArrowLeft']) strafe -= 1;
+        if (keys['KeyD'] || keys['ArrowRight']) strafe += 1;
+
+        const speed = 3.4 * dt;
+        const sinY = Math.sin(yaw);
+        const cosY = Math.cos(yaw);
+
+        const dx = (-sinY * forward + cosY * strafe) * speed;
+        const dz = (-cosY * forward - sinY * strafe) * speed;
+
+        const nextX = camera.position.x + dx;
+        const nextZ = camera.position.z + dz;
+
+        if (isWalkable(nextX, camera.position.z)) camera.position.x = nextX;
+        if (isWalkable(camera.position.x, nextZ)) camera.position.z = nextZ;
+
+        camera.rotation.y = yaw;
+        camera.rotation.x = pitch;
+
+        if (camera.position.z < -4.2) {
+          hud.textContent = 'Room 2: The Proposal 💍';
+          if (camera.position.z < -8.2) {
+            proposalUI.style.display = 'flex';
+          } else {
+            proposalUI.style.display = 'none';
+          }
+        } else {
+          hud.textContent = 'Room 1: Love Gallery ❤️';
+          proposalUI.style.display = 'none';
+        }
+      } else {
+        ceremonyProgress = Math.min(1, ceremonyProgress + dt * 0.55);
+        const ease = 1 - Math.pow(1 - ceremonyProgress, 3);
+
+        const targetPos = new THREE.Vector3(-0.35, 1.48, -10.55);
+        camera.position.lerp(targetPos, 0.06);
+
+        const lookTarget = new THREE.Vector3(-0.92, 1.15, -12.4);
+        const dummyCam = camera.clone();
+        dummyCam.lookAt(lookTarget);
+        camera.quaternion.slerp(dummyCam.quaternion, 0.08);
+
+        upperBody.position.y = 0.85 - ease * 0.38;
+        leftLeg.rotation.x = -ease * 1.25;
+        leftLeg.position.z = ease * 0.22;
+        rightLeg.rotation.x = ease * 1.35;
+        rightLeg.position.y = 0.85 - ease * 0.35;
+
+        rightArm.rotation.x = -ease * 1.35;
+        rightArm.rotation.z = -ease * 0.15;
+
+        engagementRing.position.z = -0.45 + ease * 0.285;
+        engagementRing.rotation.z = elapsed * 2.5;
+      }
+
+      if (!isProposalAccepted) {
+        boyGroup.position.y = Math.sin(elapsed * 2.2) * 0.02;
+        rightArm.rotation.x = -0.45 + Math.sin(elapsed * 2) * 0.06;
+      }
+
+      floatingHearts.forEach((h) => {
+        h.position.y += h.userData.speed;
+        h.rotation.y += h.userData.rotSpeed;
+        if (h.position.y > h.userData.maxY) {
+          h.position.y = h.userData.minY;
+        }
+      });
+
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    animate();
+  </script>
+</body>
+</html>
